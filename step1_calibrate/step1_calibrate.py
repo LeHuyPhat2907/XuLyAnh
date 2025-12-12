@@ -14,7 +14,7 @@ def run_calibration():
 
     objpoints = []
     imgpoints = []
-    
+
     # 3. Đọc ảnh từ thư mục
     images = glob.glob('calibration_images/*.jpg')
     print(f"Đang xử lý {len(images)} ảnh...")
@@ -41,7 +41,7 @@ def run_calibration():
             # cv2.drawChessboardCorners(img, CHESSBOARD_SIZE, corners2, ret)
             # cv2.imshow('Checking', img)
             # cv2.waitKey(50)
-    
+
     cv2.destroyAllWindows()
 
     # 4. Calibrate
@@ -57,7 +57,7 @@ def run_calibration():
 
     with open("calibration_data.pkl", "wb") as f:
         pickle.dump(data, f)
-    
+
     print(f"Hoàn tất! Đã lưu file 'calibration_data.pkl'. Sai số: {ret}")
 
 if __name__ == "__main__":
