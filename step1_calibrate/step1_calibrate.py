@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import cv2
 import glob
@@ -5,7 +6,7 @@ import pickle
 
 def run_calibration():
     # 1. Cấu hình bàn cờ (Sửa lại theo bàn cờ thật của bạn)
-    CHESSBOARD_SIZE = (6,9)
+    CHESSBOARD_SIZE = (5,8)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
     # 2. Chuẩn bị tọa đồ 3D ảo
@@ -16,7 +17,7 @@ def run_calibration():
     imgpoints = []
 
     # 3. Đọc ảnh từ thư mục
-    images = glob.glob('calibration_images/*.jpg')
+    images = glob.glob('step1_calibrate/calibration_images/*.jpg')
     print(f"Đang xử lý {len(images)} ảnh...")
 
     if len(images) == 0:
@@ -32,7 +33,7 @@ def run_calibration():
         ret, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
         print(fname, " -> ret =", ret)
 
-        if ret == True:
+        if ret is True:
             objpoints.append(objp)
             corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
             imgpoints.append(corners2)
@@ -41,10 +42,17 @@ def run_calibration():
             # cv2.drawChessboardCorners(img, CHESSBOARD_SIZE, corners2, ret)
             # cv2.imshow('Checking', img)
             # cv2.waitKey(50)
+        else:
+            print("  -> Không tìm thấy đủ góc bàn cờ, bỏ qua ảnh này.")
 
     cv2.destroyAllWindows()
 
     # 4. Calibrate
+    if len(objpoints) == 0 or len(imgpoints) == 0 or gray is None:
+        print("Lỗi: Không có dữ liệu góc bàn cờ hợp lệ. Kiểm tra lại ảnh và kích thước CHESSBOARD_SIZE (hiện là 6x9).")
+        print("Gợi ý: đảm bảo ảnh thật sự là bàn cờ 6x9 ô bên trong, và ảnh đủ sáng/độ phân giải.")
+        return
+
     print("Đang tính toán ma trận...")
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
