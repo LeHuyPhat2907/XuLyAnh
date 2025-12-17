@@ -6,7 +6,7 @@ import pickle
 
 def run_calibration():
     # 1. Cấu hình bàn cờ (Sửa lại theo bàn cờ thật của bạn)
-    CHESSBOARD_SIZE = (5,8)
+    CHESSBOARD_SIZE = (6,9)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
     # 2. Chuẩn bị tọa đồ 3D ảo
