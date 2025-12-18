@@ -35,7 +35,8 @@ P_WORLD_REAL = np.float32([
 ])
 
 # ==================== HÀM TẢI THAM SỐ ====================
-
+#Tải dữ liệu hiệu chuẩn camera.
+#Đọc file .pkl để lấy ma trận camera (mtx) và hệ số biến dạng (dist).
 def load_camera_params():
     """Tải tham số camera từ file calibration_data.pkl"""
     calib_path = os.path.join(os.path.dirname(__file__), "step1_calibrate", "calibration_data.pkl")
@@ -58,6 +59,7 @@ def load_camera_params():
         print(f"Error loading calibration: {e}. Will use original image.")
         return None, None
 # ==================== HÀM XỬ LÝ TÍCH HỢP ====================
+#Khử méo ảnh (giúp ảnh thẳng hơn).
 def undistort_image(frame, mtx, dist, crop=False):
     """Khử méo ảnh - giữ nguyên toàn bộ ảnh, không crop"""
     if mtx is None or dist is None:
@@ -81,8 +83,9 @@ def undistort_image(frame, mtx, dist, crop=False):
     except Exception as e:
         print(f"Error in undistort: {e}. Using original image.")
         return frame
-
+#Tính khoảng cách từ mắt đến vật.
 def estimate_size_based_distance(W_pixel_detected, mode="object"):
+
     """Tính khoảng cách dựa trên kích thước pixel phát hiện được"""
     if W_pixel_detected <= 0:
         return None
@@ -97,7 +100,7 @@ def estimate_size_based_distance(W_pixel_detected, mode="object"):
 
     distance = (W_real * K_ref) / W_pixel_detected
     return distance
-
+#Tính toán mặt phẳng đo.
 def measure_homography_distance(img, ref_points_img, P_world_real):
     """Đo khoảng cách trên mặt phẳng bằng Homography"""
     try:
@@ -192,12 +195,7 @@ def calculate_distance_with_overlay(frame, mtx, dist):
         )
 
     return undistorted, distance
-
-
-
-
 # ==================== GIAO DIỆN TKINTER ====================
-
 def open_camera():
     mtx, dist = load_camera_params()
     if mtx is None:
@@ -233,9 +231,7 @@ def open_camera():
     cv2.destroyAllWindows()
 
 def open_image():
-    mtx, dist = load_camera_params()
-    # Không bắt buộc phải có calibration - có thể dùng ảnh gốc
-
+    # Không thực hiện undistort đối với ảnh tải lên
     file_path = filedialog.askopenfilename(
         title="Chọn ảnh",
         filetypes=[
@@ -251,16 +247,8 @@ def open_image():
         messagebox.showerror("Lỗi", "Không đọc được ảnh.")
         return
 
-    # Kiểm tra và áp dụng undistortion (nếu có calibration hợp lệ)
-    if mtx is not None and dist is not None:
-        working_img = undistort_image(img, mtx, dist)
-        # Kiểm tra kết quả undistort có hợp lệ không
-        if working_img is None or working_img.size == 0 or working_img.shape[0] == 0 or working_img.shape[1] == 0:
-            print("Warning: Undistortion failed. Using original image.")
-            working_img = img.copy()
-    else:
-        working_img = img.copy()
-        print("Using original image (no calibration)")
+    # Luôn dùng ảnh gốc cho trường hợp tải lên
+    working_img = img.copy()
 
     # Kiểm tra lần cuối trước khi hiển thị
     if working_img.shape[0] <= 0 or working_img.shape[1] <= 0:
@@ -288,7 +276,6 @@ def open_image():
     offset_x, offset_y = offset
 
     # === BƯỚC 3: SỬ DỤNG VÙNG ĐÃ CHỌN ĐỂ TÍNH KHOẢNG CÁCH ===
-    # Vì người dùng đã chọn chính xác vật thể, ta sử dụng trực tiếp kích thước vùng chọn
     W_pixel_detected = w  # Chiều rộng vùng chọn
     distance = estimate_size_based_distance(W_pixel_detected, mode=MEASURE_MODE)
 
@@ -355,8 +342,6 @@ def open_image():
 
 def open_image_homography():
     """Đo khoảng cách trên mặt phẳng bằng Homography"""
-    mtx, dist = load_camera_params()
-
     file_path = filedialog.askopenfilename(
         title="Chọn ảnh",
         filetypes=[
@@ -372,12 +357,8 @@ def open_image_homography():
         messagebox.showerror("Lỗi", "Không đọc được ảnh.")
         return
 
-    if mtx is not None and dist is not None:
-        working_img = undistort_image(img, mtx, dist)
-        if working_img is None or working_img.size == 0:
-            working_img = img.copy()
-    else:
-        working_img = img.copy()
+    # Không undistort ảnh tải lên
+    working_img = img.copy()
 
     # === BƯỚC 1: CHỌN 4 ĐIỂM THAM CHIẾU (VD: GÓC TỜ GIẤY A4) ===
     ref_points = []
