@@ -127,7 +127,7 @@ def calculate_distance_with_overlay(frame, mtx, dist):
 
     return undistorted, distance
 
-    
+
 
 
 # ==================== GIAO DIỆN TKINTER ====================
@@ -150,6 +150,8 @@ def open_camera():
         if not ret:
             messagebox.showerror("Lỗi", "Không đọc được frame từ camera.")
             break
+
+        frame = cv2.flip(frame, 1)
 
         processed_frame, distance = calculate_distance_with_overlay(frame, mtx, dist)
 
